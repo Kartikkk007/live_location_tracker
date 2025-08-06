@@ -5,26 +5,25 @@ const socketio = require('socket.io');
 const path = require('path');
 const server = http.createServer(app);
 const io = socketio(server);
+
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname,"public")));
 
-
-io.on("connection", function(socket){
-socket.on("send location", function(data) {
-    io.emit("received location", { id: socket.id, ...data });
-});
-    socket.on("disconnect", function () {
-        io.emit("user disconnected",socket.id);
-  });
-
- 
-  
-  app.get('/', function(req, res){
+// Define routes OUTSIDE of io.on("connection")
+app.get('/', function(req, res){
     res.render("index");
 });
 
-}); // <-- Close the io.on("connection") block
+io.on("connection", function(socket){
+    socket.on("send location", function(data) {
+        io.emit("received location", { id: socket.id, ...data });
+    });
+    socket.on("disconnect", function () {
+        io.emit("user disconnected",socket.id);
+    });
+});
 
-server.listen(3000,()=>{
-    console.log('Server is running on port 3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`);
 });
